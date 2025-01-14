@@ -4,7 +4,7 @@ from scipy.io import wavfile
 import os
 import random
 import time
-import json
+import pandas as pd
 
 if st.session_state.get('pairs_list', None) is None:
     pairs_list = list(set(map(lambda x: x[:-4].split("_")[-1], filter(lambda x: x.endswith(".wav"), os.listdir('samples')))))
@@ -68,18 +68,9 @@ else:
     st.write("You have completed the test")
     st.write(f"You correctly chose: {len(st.session_state.thinks.intersection(st.session_state.orders))}/{len(st.session_state.orders)}")
 
-    # Check if results.json exists
-    if not os.path.exists('results.json'):
-        with open('results.json', 'w') as f:
-            json.dump({}, f)
-
-    with open('results.json', 'r+') as f:
-        results = json.load(f)
-        if st.session_state.start_time not in results:
-            results[st.session_state.start_time] = {
-                "thinks": list(st.session_state.thinks),
-                "orders": list(st.session_state.orders),
-                "time_elapsed": time.time() - st.session_state.start_time
-            }
-            f.seek(0)
-            json.dump(results, f)
+    # Show table
+    df = pd.DataFrame()
+    for i, (pair, loops) in enumerate(st.session_state.orders):
+        df.loc[i, 'Sample'] = pair
+        df.loc[i, 'Correct'] = (pair, loops) in st.session_state.thinks
+    st.write(df)
