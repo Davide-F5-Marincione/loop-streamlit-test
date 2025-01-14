@@ -57,12 +57,22 @@ if i < len(st.session_state.pairs_list):
     st.session_state.orders.add((pair, A_loops))
     if A_loops:
         A, B = B, A
-    st.header(f"Pair n.{i+1:02d}/{len(st.session_state.pairs_list)}:")
-    st.write(f"*{pair}*")
-    st.audio(A, format='audio/wav', start_time=0, loop=True, sample_rate=a_sr)
-    st.audio(B, format='audio/wav', start_time=0, loop=True, sample_rate=b_sr)
-    st.button("A from looping model", key=f"btn_A_{i}", on_click=select_A(pair))
-    st.button("B from looping model", key=f"btn_B_{i}", on_click=select_B(pair))
+    st.write(f"**Pair n.{i+1:02d}/{len(st.session_state.pairs_list)}**:")
+    st.write(f" *{pair}*")
+    a,b,c = st.columns([1,8,4])
+    with a:
+        st.write("A:")
+    with b:
+        st.audio(A, format='audio/wav', start_time=0, loop=True, sample_rate=a_sr)
+    with c:    
+        st.button("A is from looping model", key=f"btn_A_{i}", on_click=select_A(pair))
+    a,b,c = st.columns([1,8,4])
+    with a:
+        st.write("B:")
+    with b:
+        st.audio(B, format='audio/wav', start_time=0, loop=True, sample_rate=b_sr)
+    with c:
+        st.button("B is from looping model", key=f"btn_B_{i}", on_click=select_B(pair))
     st.session_state.i += 1
 else:
     st.write("You have completed the test")
