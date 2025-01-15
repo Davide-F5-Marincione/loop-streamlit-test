@@ -22,17 +22,17 @@ st.title('Audio looping A/B test')
 st.header('Instructions')
 st.write("You will be presented with pairs of audio samples, one of which is made with a looping model, the other is not. Your task is to determine which one is the looped version.")
 
-def circular_pad_to(wav, seconds=30, sample_rate=32000):
+def circular_pad_to(wav, seconds=20, sample_rate=32000):
     start_at = random.randint(0, len(wav) - 1)
     return np.tile(wav, (seconds * sample_rate) // len(wav) + 2)[start_at:start_at+seconds * sample_rate]
 
 prefix = 'samples/67_'
 
-def load_pairs(name):
+def load_pairs(name, seconds=20):
     sr_non, non_looping = wavfile.read(f'{prefix}{name}.wav')
-    non_looping = circular_pad_to(non_looping, seconds=30, sample_rate=sr_non)
+    non_looping = circular_pad_to(non_looping, seconds=seconds, sample_rate=sr_non)
     sr, looping = wavfile.read(f'{prefix}loop_{name}.wav')
-    looping = circular_pad_to(looping, seconds=30, sample_rate=sr)
+    looping = circular_pad_to(looping, seconds=seconds, sample_rate=sr)
     return non_looping, sr_non, looping, sr
 
 def select_A(i):
@@ -63,14 +63,14 @@ if i < len(st.session_state.pairs_list):
     with a:
         st.write("A:")
     with b:
-        st.audio(A, format='audio/wav', start_time=0, loop=True, sample_rate=a_sr)
+        st.audio(A, format='audio/wav', start_time=0, loop=False, sample_rate=a_sr)
     with c:    
         st.button("A is from looping model", key=f"btn_A_{i}", on_click=select_A(pair))
     a,b,c = st.columns([1,8,4])
     with a:
         st.write("B:")
     with b:
-        st.audio(B, format='audio/wav', start_time=0, loop=True, sample_rate=b_sr)
+        st.audio(B, format='audio/wav', start_time=0, loop=False, sample_rate=b_sr)
     with c:
         st.button("B is from looping model", key=f"btn_B_{i}", on_click=select_B(pair))
     st.session_state.i += 1
