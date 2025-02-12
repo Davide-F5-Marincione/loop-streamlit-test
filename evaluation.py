@@ -15,7 +15,6 @@ for response in responses[3:]:
     for key in keys:
         if key.endswith(".wav"):
             value = int(response[key]["value"][:1])
-            print(f"{key}: {value}")
             if "non" in key:
                 sum_nons += value
                 tot_nons += 1
