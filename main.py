@@ -32,7 +32,7 @@ with pages:
         st.title('Seamless survey')
         st.header('Instructions')
         st.write("We've generated a bunch of audio samples and have stitched their ends to make them loop.")
-        st.write("You are going to listen the samples around the stitch (1 second before, 1 second after); your task is to rate the seamlessness of the sample, where 1=Terrible and 5=Excellent.") 
+        st.write("The samples are repeated, with the stitch in the middle of the track; your task is to rate their seamlessness, where 1=Terrible and 5=Excellent.") 
     elif pages.current <= len(st.session_state.samples_list):
         i = pages.current - 1
         sample_name = st.session_state.samples_list[i]

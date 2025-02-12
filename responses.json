@@ -27,6 +27,32 @@
             "tropical-non.wav":3,
             "retrogame-non.wav":1,
             "wildwest-non.wav":1
+        },
+        {
+            "tropical-non.wav":2,
+            "funkygroove-circ.wav":5,
+            "epictrailer-non.wav":3,
+            "islandparty-non.wav":5,
+            "islandparty-circ.wav":5,
+            "tropical-circ.wav":5,
+            "waltz-non.wav":2,
+            "jazzfusion-circ.wav":4,
+            "lullaby-non.wav":5,
+            "medieval-circ.wav":3,
+            "funkygroove-non.wav":4,
+            "retrogame-non.wav":1,
+            "medieval-non.wav":4,
+            "energetic-non.wav":2,
+            "epictrailer-circ.wav":3,
+            "lullaby-circ.wav":3,
+            "upbeatpop-non.wav":2,
+            "energetic-circ.wav":5,
+            "retrogame-circ.wav":2,
+            "waltz-circ.wav":3,
+            "wildwest-non.wav":3,
+            "upbeatpop-circ.wav":5,
+            "wildwest-circ.wav":2,
+            "jazzfusion-non.wav":5
         }
     ]
 }
