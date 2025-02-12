@@ -1,5 +1,4 @@
 import json
-import numpy as np
 
 with open('responses.json') as f:
     responses = json.load(f)
@@ -10,14 +9,11 @@ tot_nons = 0
 tot_loops = 0
 sum_nons = 0
 sum_loops = 0
-for response in responses[3:]:
+for response in responses:
     keys = list(response.keys())
     for key in keys:
         if key.endswith(".wav"):
-            if type(response[key]["value"]) == str:
-                value = int(response[key]["value"][:1])
-            else:
-                value = response[key]["value"]
+            value = response[key]
             if "non" in key:
                 sum_nons += value
                 tot_nons += 1
