@@ -32,12 +32,11 @@ with pages:
         st.title('Seamless survey')
         st.header('Instructions')
         st.write("We've generated a bunch of audio samples and have stitched their ends to make them loop.")
-        st.write("The samples are repeated, with the stitch in the middle of the track; your task is to rate their seamlessness, where 1=Terrible and 5=Excellent.") 
+        st.write("The samples are repeated, therefore with the stitch in the middle of the track; your task is to rate their seamlessness, where 1=Terrible and 5=Excellent.") 
     elif pages.current <= len(st.session_state.samples_list):
         i = pages.current - 1
         sample_name = st.session_state.samples_list[i]
         sample_rate, sample = wavfile.read(os.path.join('samples', sample_name))
-        sample = np.concatenate([sample[-sample_rate:], sample[:sample_rate]])
         st.audio(sample, format='audio/wav', start_time=0, loop=False, sample_rate=sample_rate)
         survey.radio("Quality of the stitch", options=["1 (terrible)", "2", "3", "4", "5 (excellent)"], horizontal=True, index=2, id=sample_name)
     else:
