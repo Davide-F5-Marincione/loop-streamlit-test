@@ -10,11 +10,11 @@ tot_nons = 0
 tot_loops = 0
 sum_nons = 0
 sum_loops = 0
-for response in responses:
+for response in responses[3:]:
     keys = list(response.keys())
     for key in keys:
         if key.endswith(".wav"):
-            value = response[key]["value"]
+            value = int(response[key]["value"][:1])
             print(f"{key}: {value}")
             if "non" in key:
                 sum_nons += value
