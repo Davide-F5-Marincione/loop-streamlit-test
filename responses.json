@@ -1,6 +1,32 @@
 {
     "responses":
     [
-    
+        {"lullaby-circ.wav":2,"jazzfusion-circ.wav":5,"upbeatpop-circ.wav":4,"retrogame-circ.wav":2,"tropical-circ.wav":5,"lullaby-non.wav":5,"islandparty-circ.wav":5,"waltz-non.wav":1,"upbeatpop-non.wav":2,"medieval-non.wav":2,"energetic-non.wav":1,"waltz-circ.wav":2,"tropical-non.wav":1,"medieval-circ.wav":3,"jazzfusion-non.wav":2,"wildwest-non.wav":2,"epictrailer-non.wav":1,"wildwest-circ.wav":5,"islandparty-non.wav":2,"retrogame-non.wav":4,"funkygroove-non.wav":5,"energetic-circ.wav":4,"epictrailer-circ.wav":4,"funkygroove-circ.wav":5},
+        {
+            "lullaby-non.wav":5,
+            "energetic-non.wav":2,
+            "retrogame-circ.wav":3,
+            "medieval-circ.wav":2,
+            "funkygroove-circ.wav":5,
+            "medieval-non.wav":4,
+            "epictrailer-circ.wav":5,
+            "waltz-non.wav":2,
+            "upbeatpop-circ.wav":5,
+            "upbeatpop-non.wav":3,
+            "jazzfusion-non.wav":2,
+            "epictrailer-non.wav":3,
+            "tropical-circ.wav":5,
+            "energetic-circ.wav":4,
+            "lullaby-circ.wav":5,
+            "wildwest-circ.wav":2,
+            "islandparty-circ.wav":5,
+            "islandparty-non.wav":2,
+            "waltz-circ.wav":5,
+            "jazzfusion-circ.wav":4,
+            "funkygroove-non.wav":4,
+            "tropical-non.wav":3,
+            "retrogame-non.wav":1,
+            "wildwest-non.wav":1
+        }
     ]
 }
