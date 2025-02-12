@@ -12,12 +12,12 @@ if st.session_state.get('samples_list', None) is None:
     st.session_state.samples_list = samples
 
 ## Title
-survey = ss.StreamlitSurvey("Seamlessness survey")
+survey = ss.StreamlitSurvey("Seamless survey")
 pages = survey.pages(len(st.session_state.samples_list) + 2, progress_bar=True, on_submit=lambda: st.json(survey.to_json()))
 
 with pages:
     if pages.current == 0:
-        st.title('Seamlessness survey')
+        st.title('Seamless survey')
         st.header('Instructions')
         st.write("We've generated a bunch of audio samples from two music models.")
         st.write("One of the two models is made for looping, the other is not.")
