@@ -3,10 +3,6 @@ import os
 import requests
 import json
 import random
-import io
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 
 # -----------------------------------------------------------------------------
 # Inject custom CSS for radio buttons styled as boxes (mobile friendly)
@@ -55,7 +51,9 @@ div[role="radiogroup"] > label:hover {
 # -----------------------------------------------------------------------------
 # Configuration: GitHub Gist API details (internal)
 # -----------------------------------------------------------------------------
-CREDENTIALS_JSON = st.secrets["gdrive"]["credentials"]
+GITHUB_TOKEN = st.secrets["github_gist"]["token"]
+GIST_ID = st.secrets["github_gist"]["gist_id"]
+GIST_API_URL = f"https://api.github.com/gists/{GIST_ID}"
 
 FOLDER_1 = "ours"
 FOLDER_2 = "baseline"
@@ -97,30 +95,20 @@ def get_audio_files_from_folder(folder, num_samples=15):
 # -----------------------------------------------------------------------------
 # Helper Functions for GitHub Gist Operations (internal)
 # -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-# Helper Functions for Google Drive Operations (internal)
-# -----------------------------------------------------------------------------
 def get_gist_content(filename: str) -> str:
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
     try:
-        credentials = service_account.Credentials.from_service_account_info(
-            CREDENTIALS_JSON
-        )
-        drive_service = build("drive", "v3", credentials=credentials)
-        results = (
-            drive_service.files()
-            .list(q=f"name='{filename}'", fields="files(id)")
-            .execute()
-        )
-        items = results.get("files", [])
-        if items:
-            file_id = items[0]["id"]
-            request = drive_service.files().get_media(fileId=file_id)
-            file_content = request.execute()
-            return file_content.decode("utf-8")
-        else:
+        response = requests.get(GIST_API_URL, headers=headers)
+        if response.status_code != 200:
+            st.error(f"Impossibile leggere il Gist: {response.text}")
             return None
+        gist_data = response.json().get("files", {})
+        return gist_data.get(filename, {}).get("content", None)
     except Exception as e:
-        st.error(f"Errore durante il recupero del file da Google Drive: {e}")
+        st.error(f"Errore durante il recupero del Gist: {e}")
         return None
 
 
@@ -133,53 +121,52 @@ def count_completed_evaluations(csv_filename: str) -> int:
 
 
 def append_evaluation(csv_filename: str, new_line: str) -> None:
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    current_content = get_gist_content(csv_filename)
+    if not current_content:
+        current_content = "username,sample_id,rating\n"
+    updated_content = current_content + new_line
+    patch_data = {"files": {csv_filename: {"content": updated_content}}}
     try:
-        credentials = service_account.Credentials.from_service_account_info(
-            CREDENTIALS_JSON
-        )
-        drive_service = build("drive", "v3", credentials=credentials)
-        content = get_gist_content(csv_filename)
-        if not content:
-            content = "username,sample_id,rating\n"
-        updated_content = content + new_line
-        media_body = MediaFileUpload(io.BytesIO(updated_content.encode("utf-8")), mimetype='text/csv', resumable=True)
-        results = drive_service.files().list(q=f"name='{csv_filename}'", fields="files(id)").execute()
-        items = results.get("files", [])
-        if items:
-            file_id = items[0]["id"]
-            updated_file = drive_service.files().update(fileId=file_id, media_body=media_body).execute()
+        patch_resp = requests.patch(GIST_API_URL,
+                                    headers=headers,
+                                    json=patch_data)
+        if patch_resp.status_code not in [200, 201]:
+            st.error(f"Impossibile aggiornare il Gist: {patch_resp.text}")
         else:
-            file_metadata = {'name': csv_filename}
-            file = drive_service.files().create(body=file_metadata, media_body=media_body, fields='id').execute()
-        st.success("Valutazione inviata correttamente!")
+            st.success("Valutazione inviata correttamente!")
     except Exception as e:
-        st.error(f"Errore durante l'aggiornamento del file Google Drive: {e}")
+        st.error(f"Errore durante l'aggiornamento del Gist: {e}")
 
 
 def remove_last_evaluation(csv_filename: str) -> bool:
-    try:
-        credentials = service_account.Credentials.from_service_account_info(
-            CREDENTIALS_JSON
-        )
-        drive_service = build("drive", "v3", credentials=credentials)
-        content = get_gist_content(csv_filename)
-        if content:
-            lines = content.strip().split("\n")
-            if len(lines) > 1:
-                updated_content = "\n".join(lines[:-1]) + "\n"
-                media_body = MediaFileUpload(io.BytesIO(updated_content.encode("utf-8")), mimetype='text/csv', resumable=True)
-                results = drive_service.files().list(q=f"name='{csv_filename}'", fields="files(id)").execute()
-                items = results.get("files", [])
-                if items:
-                    file_id = items[0]["id"]
-                    updated_file = drive_service.files().update(fileId=file_id, media_body=media_body).execute()
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    content = get_gist_content(csv_filename)
+    if content:
+        lines = content.strip().split("\n")
+        if len(lines) > 1:
+            updated_content = "\n".join(lines[:-1]) + "\n"
+            patch_data = {"files": {csv_filename: {"content": updated_content}}}
+            try:
+                patch_resp = requests.patch(GIST_API_URL,
+                                            headers=headers,
+                                            json=patch_data)
+                if patch_resp.status_code in [200, 201]:
                     return True
                 else:
+                    st.error(
+                        f"Impossibile aggiornare il Gist: {patch_resp.text}")
                     return False
-        return False
-    except Exception as e:
-        st.error(f"Errore durante l'aggiornamento del file Google Drive: {e}")
-        return False
+            except Exception as e:
+                st.error(f"Errore durante l'aggiornamento del Gist: {e}")
+                return False
+    return False
 
 
 # -----------------------------------------------------------------------------
