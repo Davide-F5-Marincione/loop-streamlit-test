@@ -51,8 +51,8 @@ div[role="radiogroup"] > label:hover {
 # -----------------------------------------------------------------------------
 # Configuration: GitHub Gist API details (internal)
 # -----------------------------------------------------------------------------
-GITHUB_TOKEN = st.secrets["github_gist"]["token"]
-GIST_ID = st.secrets["github_gist"]["gist_id"]
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
+GIST_ID = st.secrets["GIST_ID"]
 GIST_API_URL = f"https://api.github.com/gists/{GIST_ID}"
 
 FOLDER_1 = "ours"
