@@ -56,8 +56,6 @@ div[role="radiogroup"] > label:hover {
 # Configuration: GitHub Gist API details (internal)
 # -----------------------------------------------------------------------------
 CREDENTIALS_JSON = st.secrets["gdrive"]["credentials"]
-GIST_ID = st.secrets["github_gist"]["gist_id"]
-GIST_API_URL = f"https://api.github.com/gists/{GIST_ID}"
 
 FOLDER_1 = "ours"
 FOLDER_2 = "baseline"
