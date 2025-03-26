@@ -1,24 +1,23 @@
 import streamlit as st
 import requests
-import json
-import base64
+import pandas as pd
+from io import StringIO
 import os
 import random
 import uuid
 
 # Load GitHub credentials from environment variables or Streamlit secrets
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", st.secrets.get("GITHUB_TOKEN"))
-GITHUB_REPO = os.getenv("GITHUB_REPO", st.secrets.get("GITHUB_REPO"))
+GIST_ID = os.getenv("GIST_ID", st.secrets.get("GIST_ID"))
 
-GITHUB_FILE_PATH = "evaluations.json"
-GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}"
+HEADERS = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
 
 FOLDER_1 = "bp_resc"  # Folder containing the first 100 audio samples
 FOLDER_2 = "test_folder"  # Folder containing the second 100 audio samples
 
 def get_audio_files_from_folder(folder, num_samples=15):
     try:
-        all_files = [f for f in os.listdir(folder) if f.endswith((".mp3", ".wav", ".ogg"))]
+        all_files = [folder + "/" + f for f in os.listdir(folder) if f.endswith((".mp3", ".wav", ".ogg"))]
         return random.sample(all_files, num_samples)  # Randomly select 'num_samples' files
     except FileNotFoundError:
         return []
@@ -35,35 +34,36 @@ if "audio_order" not in st.session_state:
     random.shuffle(all_samples)  # Randomize order
     st.session_state.audio_order = all_samples
     st.session_state.audio_index = 0  # Start with the first audio
-
-# Function to get existing file content from GitHub
-def get_github_file():
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    response = requests.get(GITHUB_API_URL, headers=headers)
-
+    
+# Function to get existing CSV content from a Gist
+def get_gist_file(file_name):
+    url = f"https://api.github.com/gists/{GIST_ID}"
+    response = requests.get(url, headers=HEADERS)
+    
     if response.status_code == 200:
-        file_info = response.json()
-        content = base64.b64decode(file_info["content"]).decode("utf-8")
-        sha = file_info["sha"]
-        return json.loads(content), sha
-    return [], None
+        gist_data = response.json()
+        if file_name in gist_data["files"]:
+            csv_content = gist_data["files"][file_name]["content"]
+            return pd.read_csv(StringIO(csv_content))
+    
+    return pd.DataFrame(columns=["evaluator", "sample", "rating"])  # Empty DataFrame if file doesn't exist
 
-# Function to update file on GitHub
-def update_github_file(new_data):
-    existing_data, sha = get_github_file()
-    existing_data.append(new_data)
-    updated_content = json.dumps(existing_data, indent=4)
+# Function to update a specific file inside the Gist
+def update_gist_file(file_name, new_row):
+    url = f"https://api.github.com/gists/{GIST_ID}"
 
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    data = {
-        "message": "Updated evaluation results",
-        "content": base64.b64encode(updated_content.encode()).decode(),
-        "branch": "main",
-    }
-    if sha:
-        data["sha"] = sha
+    # Get existing CSV data
+    df = get_gist_file(file_name)
+    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)  # Append new row
 
-    response = requests.put(GITHUB_API_URL, headers=headers, json=data)
+    # Convert DataFrame to CSV
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_content = csv_buffer.getvalue()
+
+    update_payload = {"files": {file_name: {"content": csv_content}}}
+    response = requests.patch(url, headers=HEADERS, json=update_payload)
+
     return response.status_code in [200, 201]
 
 # Streamlit UI
@@ -81,7 +81,8 @@ if st.session_state.evaluator_name is None:
         evaluator_uuid = str(uuid.uuid4())
         st.session_state.evaluator_name = evaluator_name
         st.session_state.evaluator_uuid = evaluator_uuid  # Store the generated UUID
-        st.session_state.evaluator_file = f"{evaluator_uuid}.json"
+        st.session_state.evaluator_file = f"results_{evaluator_uuid}.csv"
+        
         st.rerun()  # Refresh to start evaluation
 else:
     st.write(f"Valutatore: **{st.session_state.evaluator_name}**")
@@ -97,7 +98,7 @@ else:
     # Step 3: Show the current audio sample
     if st.session_state.audio_index < total_samples:
         current_audio = st.session_state.audio_order[st.session_state.audio_index]
-        st.audio(os.path.join(AUDIO_DIR, current_audio), format="audio/mp3")
+        st.audio(current_audio, format="audio/mp3")
         
         rating = st.radio("Qualità della transizione", options=["1 (terribile)", "2", "3", "4", "5 (eccellente)"], horizontal=True)
         
@@ -119,7 +120,7 @@ else:
                 "rating": rating
             }
 
-            if update_github_file(evaluation_data):
+            if update_gist_file(st.session_state.evaluator_file, evaluation_data):
                 st.success("Valutazione inviata!")
                 
                 # Move to the next audio
